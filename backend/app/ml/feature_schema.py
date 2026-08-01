@@ -13,10 +13,14 @@ SOLAR_MODEL_FEATURE_SCHEMA = [
     "temperature", "humidity",
 ]
 
+WIND_MODEL_FEATURE_SCHEMA = [
+    "wind_speed", "elevation", "slope", "forest_pct", "net_area_sown_pct",
+    "fallow_land_pct", "culturable_wasteland_pct",
+    "distance_to_road_km", "distance_to_grid_km",
+    "distance_to_nearest_settlement_km", "nearby_settlement_count",
+    "temperature", "humidity",
+]
 
-def build_model_input(features: dict) -> list:
-    """
-    Converts a FeatureBuilder-style dict into an ordered list matching
-    SOLAR_MODEL_FEATURE_SCHEMA — the exact shape the model expects.
-    """
-    return [features.get(col) for col in SOLAR_MODEL_FEATURE_SCHEMA]
+
+def build_model_input(features: dict, schema: list) -> list:
+    return [features.get(col) for col in schema]

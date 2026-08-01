@@ -146,3 +146,20 @@ annual solar energy output from 13 engineered features. Exposed via
 GET /predict/solar, replacing rule-based estimation for this endpoint
 specifically (rule-based energy_estimation.py remains in use for
 Hybrid/Wind and the /energy/estimate endpoint).
+
+
+## Wind Prediction
+**Status:** ✅ ML model implemented (Random Forest, selected over
+XGBoost baseline). Integrated into POST /analysis and exposed
+directly via GET /predict/wind.
+
+## Analysis Pipeline (Integration Layer)
+**Status:** ✅ Updated — now orchestrates ML-based solar AND wind
+predictions (previously rule-based), alongside Evaluation, Scoring,
+and Deployment Recommendation modules.
+
+### `GET /predict/wind`
+ML-based prediction of annual wind energy output (kWh/year) for a
+5000kW reference installation, using a trained Random Forest model.
+Query params: latitude, longitude.
+Response `200`: {"latitude": float, "longitude": float, "prediction_kwh_year": float, "error": null}

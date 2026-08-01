@@ -341,3 +341,36 @@ Model persisted via joblib to models/solar_energy_model_final.pkl
 (project root, per original architecture). Loaded once at FastAPI
 startup (app.state.solar_prediction_service), exposed via
 GET /predict/solar.
+
+
+## Update: Wind ML Model + Generalized Prediction Service
+
+Trained and compared Random Forest vs. XGBoost for wind energy
+prediction:
+
+| Model | Train time (s) | Val MAE | Val RMSE | Val R² |
+|---|---|---|---|---|
+| Random Forest | 0.489 | 9,680.65 | 22,833.01 | 0.9999 |
+| XGBoost | 0.128 | 36,780.13 | 70,192.14 | 0.9993 |
+
+Random Forest selected despite XGBoost's faster training, due to a
+much smaller train/validation performance gap (better generalization).
+XGBoost's larger gap (train MAE 2,223 -> val MAE 36,780, ~16x) is
+consistent with overfitting under default (untuned) hyperparameters —
+a known XGBoost characteristic requiring more careful tuning than
+Random Forest to avoid.
+
+**Refactor:** SolarPredictionService was generalized into a single
+reusable MLPredictionService class, parameterized by model file and
+feature schema — avoiding duplicated load/validate/predict logic
+between solar and wind prediction paths (see app/ml/feature_schema.py
+for both schemas).
+
+**Integration:** AnalysisService (POST /analysis) now uses ML
+predictions for both solar and wind energy, replacing the earlier
+rule-based energy_estimation.py calls for these two fields. The
+response transparently reports prediction source ("ml_model" vs
+"unavailable") and any missing-feature errors, verified via a live
+edge-case test (Leh — a disputed border region with known land-use
+data gaps) which correctly returned graceful null/error values
+rather than crashing.
