@@ -307,3 +307,37 @@ management purposes but reflects older, less accurate elevation/slope
 and lacks real road/grid distance data. Can be refreshed later using
 the same import pattern (notebooks/06_populate_feature_store.py) if
 it becomes actively needed.
+
+
+## Update: ML Baseline Model — Solar Energy Prediction
+
+Trained and compared two regression models predicting annual solar
+energy output (kWh/year) for a 5000kW reference installation:
+
+| Model | Train R² | Val R² | Train MAE | Val MAE |
+|---|---|---|---|---|
+| Decision Tree | 1.0000 | 0.9999 | 0.00 | 2183.26 |
+| Random Forest | 0.9996 | 0.9998 | 1276.63 | 1886.47 |
+
+Decision Tree shows textbook overfitting (zero training error).
+Random Forest selected for deployment due to more realistic,
+consistent train/validation performance — better expected
+generalization to genuinely new coordinates.
+
+**Note on target generation:** the training target was computed using
+a continuous capacity-factor formula (calculate_solar_capacity_factor_continuous),
+not the bucketed classify_solar_site() used elsewhere in the codebase —
+the bucketed version collapsed too many distinct irradiance values into
+identical targets, which would have produced an artificially degenerate
+regression problem.
+
+Feature Schema (13 inputs, fixed order — see app/ml/feature_schema.py):
+solar_irradiance, elevation, slope, forest_pct, net_area_sown_pct,
+fallow_land_pct, culturable_wasteland_pct, distance_to_road_km,
+distance_to_grid_km, distance_to_nearest_settlement_km,
+nearby_settlement_count, temperature, humidity.
+
+Model persisted via joblib to models/solar_energy_model_final.pkl
+(project root, per original architecture). Loaded once at FastAPI
+startup (app.state.solar_prediction_service), exposed via
+GET /predict/solar.

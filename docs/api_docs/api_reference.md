@@ -222,3 +222,11 @@ Response `200`: consolidated result with solar_features, wind_features,
 evaluation, site_score, deployment_recommendation, and raw_features.
 Response `422`: invalid latitude/longitude.
 Response `500`: pipeline execution failure (with error detail).
+
+
+### `GET /predict/solar`
+ML-based prediction of annual solar energy output (kWh/year) for a
+5000kW reference installation, using a trained Random Forest model.
+Query params: latitude, longitude.
+Response `200`: {"latitude": float, "longitude": float, "prediction_kwh_year": float, "error": null}
+Response includes "error" field (non-null) if required features are missing.

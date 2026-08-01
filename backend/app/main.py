@@ -1,11 +1,13 @@
 from fastapi import FastAPI
-from app.api import home, projects, sites, predictions, auth, features, evaluate, solar, deployment, scoring, energy, optimization, analysis
+from app.api import home, projects, sites, predictions, auth, features, evaluate, solar, deployment, scoring, energy, optimization, analysis, predict
 from app.database.database import Base, engine
 from app.models.project import Project
 from app.models.site import Site
 from app.models.user import User
 from app.models.feature import Feature
 from app.services.feature_engineering.feature_builder import create_feature_builder
+from app.services.ml_prediction_service import SolarPredictionService
+
 
 app = FastAPI(title="Solar & Wind Deployment Intelligence Platform")
 
@@ -28,6 +30,7 @@ app.include_router(scoring.router)
 app.include_router(energy.router)
 app.include_router(optimization.router)
 app.include_router(analysis.router)
+app.include_router(predict.router)
 
 @app.get("/health")
 def health_check():
@@ -36,3 +39,8 @@ def health_check():
 @app.get("/about")
 def about():
     return {"project": "Solar & Wind Deployment Intelligence Platform"}
+
+@app.on_event("startup")
+def startup_event():
+    app.state.feature_builder = create_feature_builder()
+    app.state.solar_prediction_service = SolarPredictionService()

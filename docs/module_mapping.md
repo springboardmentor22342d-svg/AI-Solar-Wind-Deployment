@@ -137,3 +137,12 @@ Scoring, and Deployment modules into a single consolidated response
 via POST /analysis. Single-responsibility design: AnalysisService
 coordinates, but doesn't duplicate logic already implemented in
 each underlying module.
+
+
+## Solar Prediction
+**Status:** ✅ ML model implemented. Random Forest regressor (selected
+over Decision Tree baseline after overfitting analysis) predicts
+annual solar energy output from 13 engineered features. Exposed via
+GET /predict/solar, replacing rule-based estimation for this endpoint
+specifically (rule-based energy_estimation.py remains in use for
+Hybrid/Wind and the /energy/estimate endpoint).

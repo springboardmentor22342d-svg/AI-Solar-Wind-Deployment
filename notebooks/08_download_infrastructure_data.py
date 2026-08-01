@@ -2,24 +2,34 @@ import requests
 import json
 import os
 
-# High-reliability mirror suited for large spatial queries
-OVERPASS_URL = "https://overpass.private.coffee/api/interpreter"
+# VK Maps high-capacity server
+OVERPASS_URL = "https://maps.mail.ru/osm/tools/overpass/api/interpreter"
 
 HEADERS = {
     "User-Agent": "SolarWindIntelligencePlatform/1.0"
 }
 
-# Major Roads Query for India (Motorway, Trunk, Primary)
-ROADS_QUERY = """
+# 1. Expressways & Trunks (Highest priority corridors)
+MOTORWAY_TRUNK_QUERY = """
 [out:json][timeout:300];
 area["ISO3166-1"="IN"][admin_level=2]->.searchArea;
 (
-  way["highway"~"^(motorway|trunk|primary)$"](area.searchArea);
+  way["highway"~"^(motorway|trunk)$"](area.searchArea);
 );
 out skel geom;
 """
 
-# Power Substations Query for India
+# 2. Primary Highways
+PRIMARY_QUERY = """
+[out:json][timeout:300];
+area["ISO3166-1"="IN"][admin_level=2]->.searchArea;
+(
+  way["highway"="primary"](area.searchArea);
+);
+out skel geom;
+"""
+
+# 3. Substations
 SUBSTATIONS_QUERY = """
 [out:json][timeout:300];
 area["ISO3166-1"="IN"][admin_level=2]->.searchArea;
@@ -30,33 +40,36 @@ area["ISO3166-1"="IN"][admin_level=2]->.searchArea;
 out center;
 """
 
-def download_dataset(query: str, output_path: str, dataset_name: str) -> None:
-    print(f"Downloading India {dataset_name} (this may take 1-3 minutes)...")
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    
-    response = requests.post(
-        OVERPASS_URL, 
-        data={"data": query}, 
-        headers=HEADERS, 
-        timeout=360
-    )
-    
+def fetch_data(query: str, name: str) -> dict:
+    print(f"Downloading {name}...")
+    response = requests.post(OVERPASS_URL, data={"data": query}, headers=HEADERS, timeout=360)
     if response.status_code == 200:
-        with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(response.json(), f)
-        print(f"✅ Saved India {dataset_name} -> {output_path}")
+        return response.json()
     else:
-        print(f"❌ Failed to download {dataset_name}. HTTP Status: {response.status_code}")
-        print(response.text[:200])
+        print(f"❌ Failed to fetch {name}. Status code: {response.status_code}")
+        return None
 
 if __name__ == "__main__":
-    download_dataset(
-        ROADS_QUERY, 
-        "../datasets/openstreetmap/india_major_roads.json", 
-        "Major Roads"
-    )
-    # download_dataset(
-    #     SUBSTATIONS_QUERY, 
-    #     "../datasets/openstreetmap/india_substations.json", 
-    #     "Substations"
-    # )
+    output_dir = "../datasets/openstreetmap"
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Download roads in two lighter chunks and combine elements
+    hw_data1 = fetch_data(MOTORWAY_TRUNK_QUERY, "Expressways and Trunks")
+    hw_data2 = fetch_data(PRIMARY_QUERY, "Primary Roads")
+
+    if hw_data1 and hw_data2:
+        combined_elements = hw_data1.get("elements", []) + hw_data2.get("elements", [])
+        hw_data1["elements"] = combined_elements
+        
+        roads_path = os.path.join(output_dir, "india_major_roads.json")
+        with open(roads_path, "w", encoding="utf-8") as f:
+            json.dump(hw_data1, f)
+        print(f"✅ Saved India Major Roads -> {roads_path}")
+
+    # Download substations
+    sub_data = fetch_data(SUBSTATIONS_QUERY, "Substations")
+    if sub_data:
+        sub_path = os.path.join(output_dir, "india_substations.json")
+        with open(sub_path, "w", encoding="utf-8") as f:
+            json.dump(sub_data, f)
+        print(f"✅ Saved India Substations -> {sub_path}")
