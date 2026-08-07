@@ -11,7 +11,10 @@ def run_full_analysis(payload: AnalysisRequest, request: Request):
         solar_prediction_service = request.app.state.solar_prediction_service
         wind_prediction_service = request.app.state.wind_prediction_service
         service = AnalysisService(builder, solar_prediction_service, wind_prediction_service)
-        result = service.run_analysis(payload.latitude, payload.longitude, payload.project_name)
+        result = service.run_analysis(
+            payload.latitude, payload.longitude, payload.project_name,
+            payload.installed_capacity_kw, payload.tariff_per_kwh
+        )
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis pipeline failed: {str(e)}")

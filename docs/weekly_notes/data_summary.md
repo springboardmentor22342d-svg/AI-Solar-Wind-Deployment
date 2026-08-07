@@ -374,3 +374,39 @@ response transparently reports prediction source ("ml_model" vs
 edge-case test (Leh — a disputed border region with known land-use
 data gaps) which correctly returned graceful null/error values
 rather than crashing.
+
+## Update: Feasibility, Energy Yield, and Financial Analysis Integration
+
+Extended the analysis pipeline with three new stages, each built as
+an independent, reusable module:
+
+1. **Technical Feasibility Engine** (app/feasibility/) — wraps the
+   existing evaluation module's hard constraints and weighted scoring
+   into feasibility_pct / constraint_violations / critical_violations /
+   overall_status format. Reuses app/evaluation/ rather than
+   duplicating constraint logic. Validated: sites with critical
+   constraint failures correctly show 0% and "Not Feasible"; sites
+   passing all critical constraints but varying in soft factors show
+   proportionally different feasibility percentages (69.83 vs 63.30
+   for otherwise-identical sites with worse land-use/road-distance).
+
+2. **Energy Yield Service** (app/services/energy_yield_service.py) —
+   ML-first prediction with automatic fallback to rule-based formula
+   estimation when ML features are unavailable, ensuring no purely
+   theoretical values are ever returned. Incorporates system
+   efficiency (95% default) and operational loss factor (3% default)
+   on top of raw predictions.
+
+3. **Financial Analysis Module** (app/financial/) — deliberately
+   decoupled from ML/prediction modules per task requirement, taking
+   only plain numeric inputs (energy yield, capacity, tariff). Uses
+   configurable reference values for cost/MW (₹3.5cr solar, ₹6cr
+   wind, typical Indian utility-scale figures — not site-specific
+   quotes) and a 25-year default project lifetime for ROI calculation.
+   Validated: revenue/ROI increase and payback shrinks with higher
+   tariff; payback lengthens and ROI drops with higher capacity at
+   fixed yield — both directionally correct.
+
+Full pipeline (POST /analysis) now chains: environmental features ->
+ML prediction -> technical feasibility -> energy yield -> financial
+analysis, in a single API call, verified end-to-end on real coordinates.

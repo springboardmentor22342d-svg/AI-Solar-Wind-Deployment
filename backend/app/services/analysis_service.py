@@ -1,16 +1,9 @@
-"""
-Orchestrates the full workflow: feature retrieval -> evaluation ->
-scoring -> deployment recommendation -> energy estimation.
-
-Both solar and wind energy estimation use trained ML models
-(Random Forest) instead of rule-based formulas, wherever features
-are complete. Falls back to reporting unavailability (not a crash)
-when required features are missing.
-"""
-
 from app.evaluation.evaluator import evaluate_site
 from app.scoring.site_scorer import calculate_site_score
 from app.services.deployment_strategy import build_deployment_recommendation
+from app.feasibility.feasibility_engine import assess_technical_feasibility
+from app.services.energy_yield_service import estimate_solar_yield, estimate_wind_yield, estimate_hybrid_yield
+from app.financial.financial_analysis_service import run_financial_analysis
 
 
 class AnalysisService:
@@ -20,7 +13,7 @@ class AnalysisService:
         self.wind_prediction_service = wind_prediction_service
 
     def run_analysis(self, latitude: float, longitude: float, project_name: str = None,
-                      installed_capacity_kw: float = 5000) -> dict:
+                      installed_capacity_kw: float = 5000, tariff_per_kwh: float = 3.5) -> dict:
         features = self.feature_builder.build(latitude, longitude)
 
         solar_features = {
@@ -44,28 +37,41 @@ class AnalysisService:
             "culturable_wasteland_pct": features.get("culturable_wasteland_pct"),
         }
         evaluation_result = evaluate_site(evaluation_input)
-
         site_score = calculate_site_score(features)
-
         deployment = build_deployment_recommendation(
             features.get("solar_irradiance"), features.get("wind_speed_100m")
         )
 
-        # ML-based solar energy prediction
-        ml_solar_prediction = self.solar_prediction_service.predict(features)
+        feasibility = assess_technical_feasibility(features)
 
-        # ML-based wind energy prediction (alias wind_speed_100m -> wind_speed for the model's schema)
         wind_model_features = {**features, "wind_speed": features.get("wind_speed_100m")}
-        ml_wind_prediction = self.wind_prediction_service.predict(wind_model_features)
+        deployment_type = deployment["deployment"]
 
-        energy_summary = {
-            "estimated_annual_solar_energy_kwh": ml_solar_prediction.get("prediction_kwh_year"),
-            "solar_prediction_source": "ml_model" if ml_solar_prediction.get("error") is None else "unavailable",
-            "solar_prediction_error": ml_solar_prediction.get("error"),
-            "estimated_annual_wind_energy_kwh": ml_wind_prediction.get("prediction_kwh_year"),
-            "wind_prediction_source": "ml_model" if ml_wind_prediction.get("error") is None else "unavailable",
-            "wind_prediction_error": ml_wind_prediction.get("error"),
-        }
+        if deployment_type == "Solar":
+            yield_result = estimate_solar_yield(
+                installed_capacity_kw, features.get("solar_irradiance"),
+                self.solar_prediction_service, features
+            )
+            annual_energy_yield = yield_result.get("annual_energy_kwh", 0)
+        elif deployment_type == "Wind":
+            yield_result = estimate_wind_yield(
+                installed_capacity_kw, features.get("wind_speed_100m"),
+                self.wind_prediction_service, wind_model_features
+            )
+            annual_energy_yield = yield_result.get("annual_energy_kwh", 0)
+        elif deployment_type == "Hybrid":
+            yield_result = estimate_hybrid_yield(
+                installed_capacity_kw, features.get("solar_irradiance"), features.get("wind_speed_100m"),
+                self.solar_prediction_service, self.wind_prediction_service, features
+            )
+            annual_energy_yield = yield_result.get("total_annual_energy_kwh", 0)
+        else:
+            yield_result = {"annual_energy_kwh": 0, "source": "not_applicable"}
+            annual_energy_yield = 0
+
+        financial_analysis = run_financial_analysis(
+            annual_energy_yield, installed_capacity_kw, deployment_type, tariff_per_kwh
+        )
 
         return {
             "project_name": project_name,
@@ -76,6 +82,8 @@ class AnalysisService:
             "evaluation": evaluation_result,
             "site_score": site_score,
             "deployment_recommendation": deployment,
-            "energy_summary": energy_summary,
+            "technical_feasibility": feasibility,
+            "energy_yield": yield_result,
+            "financial_analysis": financial_analysis,
             "raw_features": features,
         }

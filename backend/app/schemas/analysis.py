@@ -5,3 +5,5 @@ class AnalysisRequest(BaseModel):
     latitude: float = Field(..., ge=-90, le=90)
     longitude: float = Field(..., ge=-180, le=180)
     project_name: Optional[str] = None
+    installed_capacity_kw: Optional[float] = 5000
+    tariff_per_kwh: Optional[float] = 3.5
