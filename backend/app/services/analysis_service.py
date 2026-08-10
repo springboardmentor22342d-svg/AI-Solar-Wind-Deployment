@@ -59,10 +59,12 @@ class AnalysisService:
                 self.wind_prediction_service, wind_model_features
             )
             annual_energy_yield = yield_result.get("annual_energy_kwh", 0)
+
         elif deployment_type == "Hybrid":
+            wind_model_features = {**features, "wind_speed": features.get("wind_speed_100m")}
             yield_result = estimate_hybrid_yield(
                 installed_capacity_kw, features.get("solar_irradiance"), features.get("wind_speed_100m"),
-                self.solar_prediction_service, self.wind_prediction_service, features
+                self.solar_prediction_service, self.wind_prediction_service, wind_model_features
             )
             annual_energy_yield = yield_result.get("total_annual_energy_kwh", 0)
         else:
@@ -77,13 +79,11 @@ class AnalysisService:
             "project_name": project_name,
             "latitude": latitude,
             "longitude": longitude,
-            "solar_features": solar_features,
-            "wind_features": wind_features,
-            "evaluation": evaluation_result,
-            "site_score": site_score,
-            "deployment_recommendation": deployment,
+            "site_suitability": evaluation_result,
+            "recommended_deployment": deployment,
             "technical_feasibility": feasibility,
             "energy_yield": yield_result,
-            "financial_analysis": financial_analysis,
+            "financial_metrics": financial_analysis,
+            "recommendation_reason": deployment.get("reason", ""),
             "raw_features": features,
         }

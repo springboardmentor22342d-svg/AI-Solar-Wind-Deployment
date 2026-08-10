@@ -1,10 +1,12 @@
-from app.financial.financial_analysis_service import run_financial_analysis
+from app.forecasting.forecast_input_pipeline import ForecastInputPipeline
+from app.services.feature_engineering.feature_builder import create_feature_builder
+from app.forecasting.hybrid_forecast import HybridForecastModel
 
-# Baseline
-print(run_financial_analysis(7_301_206, 5000, "Solar"))
+builder = create_feature_builder()
+pipeline = ForecastInputPipeline(builder)
+df = pipeline.prepare_forecast_input(23.2599, 77.4126, "20230101", "20231231")
 
-# Higher tariff -> revenue and ROI should increase, payback should shrink
-print(run_financial_analysis(7_301_206, 5000, "Solar", tariff_per_kwh=5.0))
-
-# Larger capacity/cost -> payback should lengthen if revenue doesn't scale proportionally
-print(run_financial_analysis(7_301_206, 10000, "Solar"))
+model = HybridForecastModel()
+model.fit(df)
+print(model.predict(6))   
+print(model.predict(12))  

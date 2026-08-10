@@ -28,7 +28,8 @@ def assess_technical_feasibility(features: dict) -> dict:
             "constraint_violations": int,
             "critical_violations": list[str] or "None",
             "overall_status": "Feasible" | "Not Feasible",
-            "constraint_details": dict
+            "constraint_details": dict,
+            "missing_data_fields": list[str] or "None"
         }
     """
     evaluation_input = {
@@ -40,6 +41,8 @@ def assess_technical_feasibility(features: dict) -> dict:
         "forest_pct": features.get("forest_pct"),
         "culturable_wasteland_pct": features.get("culturable_wasteland_pct"),
     }
+
+    missing_features = [k for k, v in evaluation_input.items() if v is None]
 
     evaluation = evaluate_site(evaluation_input)
     constraints = evaluation["constraints"]
@@ -56,4 +59,5 @@ def assess_technical_feasibility(features: dict) -> dict:
         "critical_violations": critical_failed if critical_failed else "None",
         "overall_status": overall_status,
         "constraint_details": constraints,
+        "missing_data_fields": missing_features if missing_features else "None",
     }

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Request, HTTPException
-from app.schemas.analysis import AnalysisRequest
+from app.schemas.analysis import AnalysisRequest, AnalysisResponse
 from app.services.analysis_service import AnalysisService
 
 router = APIRouter()
 
-@router.post("/analysis")
+@router.post("/analysis", response_model=AnalysisResponse)
 def run_full_analysis(payload: AnalysisRequest, request: Request):
     try:
         builder = request.app.state.feature_builder
