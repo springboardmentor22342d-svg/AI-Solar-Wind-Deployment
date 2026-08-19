@@ -1,0 +1,9 @@
+"""
+Weights for Site Suitability Evaluation
+"""
+
+SOLAR_WEIGHT = 0.35
+WIND_WEIGHT = 0.25
+SLOPE_WEIGHT = 0.15
+GRID_WEIGHT = 0.15
+ROAD_WEIGHT = 0.10
