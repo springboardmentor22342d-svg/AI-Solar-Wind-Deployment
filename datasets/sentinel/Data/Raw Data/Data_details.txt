@@ -1,0 +1,17 @@
+Extent	72.7827462580000031,18.9086328640000012 : 72.9718317340000056,19.2638524900000014
+Width	2105
+Height	3954
+Data type	Float64 - Sixty four bit floating point
+GDAL Driver Description	GTiff
+GDAL Driver Metadata	GeoTIFF
+Dataset Description	/data/Mumbai_Data.tif
+
+
+
+Extent	72.7827462580000031,18.9086328640000012 : 72.9718317340000056,19.2638524900000014
+Width	2105
+Height	3954
+Data type	Float32 - Thirty two bit floating point
+GDAL Driver Description	GTiff
+GDAL Driver Metadata	GeoTIFF
+Dataset Description	\data\Data_labels.tif

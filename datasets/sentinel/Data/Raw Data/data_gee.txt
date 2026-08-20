@@ -1,0 +1,41 @@
+// Define ROI polygon
+var roi = ee.Geometry.Polygon([
+  [
+    [72.77475912744669, 18.886095604444215],
+    [73.00409872705606, 18.886095604444215],
+    [73.00409872705606, 19.32016336192028],
+    [72.77475912744669, 19.32016336192028],
+    [72.77475912744669, 18.886095604444215]
+  ]
+]);
+
+// Define date range
+var startDate = '2015-01-01';
+var endDate = '2016-12-31';
+
+//COPERNICUS/S2_SR_HARMONISED
+var collection = ee.ImageCollection('COPERNICUS/S2_HARMONIZED')
+  .filterBounds(roi)
+  .filterDate(startDate, endDate)
+  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20)); // Filter by low cloud cover
+
+// Check if collection is empty
+print('Image Collection Size:', collection.size());
+
+// Select a median composite (or pick the first one if you want a single image)
+var image = collection.median().clip(roi);
+
+// Visualize using RGB bands (B4 = Red, B3 = Green, B2 = Blue)
+Map.centerObject(roi, 10);
+Map.addLayer(image, {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000}, 'Sentinel-2 RGB');
+
+// Export to Google Drive
+Export.image.toDrive({
+  image: image,
+  description: 'Sentinel2_JanToMay2015',
+  folder: 'Quantum_Data',  // Change this to your Google Drive folder
+  fileNamePrefix: 'Sentinel2_Mumbai_JanToMay2015',
+  region: roi,
+  scale: 10, // Sentinel-2 resolution (10m for RGB)
+  maxPixels: 1e13
+});

@@ -1,0 +1,96 @@
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.pyc
+*.pyo
+
+# ── Virtual Environments ──────────────────────────────────────────────────────
+venv/
+env/
+.venv/
+.env/
+ENV/
+
+# ── Environment Variables ─────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ── Jupyter Notebooks ─────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── Data & Models (large files) ───────────────────────────────────────────────
+datasets/**/*.csv
+datasets/**/*.tif
+datasets/**/*.tiff
+datasets/**/*.geotiff
+datasets/**/*.zip
+datasets/**/*.h5
+datasets/**/*.hdf5
+datasets/**/*.npy
+datasets/**/*.dbf
+datasets/**/*.shp
+datasets/**/*.shx
+models/**/*.pkl
+models/**/*.joblib
+models/**/*.h5
+
+# ── Reports (generated outputs) ───────────────────────────────────────────────
+reports/**/*.pdf
+reports/**/*.xlsx
+
+# ── Database ──────────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+docker/volumes/
+
+# ── IDE & OS ──────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Node.js (Frontend) ────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+frontend/dist/
+frontend/build/
+frontend/.next/
+
+# ── Test & Coverage ───────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ── Alembic (DB migrations) ───────────────────────────────────────────────────
+# Keep migration scripts but ignore generated env
+alembic/versions/__pycache__/
+
+# ── Unnecessary / Temp Files ──────────────────────────────────────────────────
+New folder/
+tasks.txt
+tasks1.txt
+
+# ── ML Models (allow .joblib for demo) ────────────────────────────────────────
+!backend/models/*.joblib
+
+# ── IDE / Tool specific ──────────────────────────────────────────────────────
+.antigravity-ide/
