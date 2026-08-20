@@ -25,9 +25,9 @@ def create_feature(feature: FeatureCreate, db: Session = Depends(get_db)):
     return service.save(feature)
 
 @router.get("/features", response_model=list[FeatureResponse])
-def get_all_features(db: Session = Depends(get_db)):
+def get_all_features(db: Session = Depends(get_db), skip: int = 0, limit: int = 50):
     service = FeatureStoreService(db)
-    return service.get_all()
+    return service.get_all(skip=skip, limit=limit)
 
 @router.get("/features/{feature_id}", response_model=FeatureResponse)
 def get_feature_by_id(feature_id: int, db: Session = Depends(get_db)):

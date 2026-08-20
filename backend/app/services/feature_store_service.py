@@ -19,8 +19,8 @@ class FeatureStoreService:
         self.db.refresh(new_feature)
         return new_feature
 
-    def get_all(self) -> list[Feature]:
-        return self.db.query(Feature).all()
+    def get_all(self, skip: int = 0, limit: int = 50) -> list[Feature]:
+        return self.db.query(Feature).offset(skip).limit(limit).all()
 
     def get_by_id(self, feature_id: int) -> Feature | None:
         return self.db.query(Feature).filter(Feature.id == feature_id).first()

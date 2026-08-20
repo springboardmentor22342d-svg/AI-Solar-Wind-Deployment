@@ -445,3 +445,20 @@ seasonal-average baseline forecasters using the existing
 forecast_input_pipeline.py time-series data. Verified: June/December
 forecasts for Bhopal show physically sensible seasonal variation
 (higher wind in monsoon season, lower irradiance/wind in winter).
+
+## Update: Land/Water Mask for Site Validity
+
+Added LandMaskClient (app/data_sources/land_mask.py) using Natural
+Earth's public domain 50m land polygon dataset — a standard,
+industry-recognized source for land/ocean classification. Integrated
+into check_site_validity() as the primary physical plausibility
+check, replacing the earlier "missing solar+wind data" heuristic as
+the main water-exclusion mechanism (which is retained as a secondary
+signal for genuinely uncovered coordinates).
+
+Verified: known ocean coordinates (Bay of Bengal, mid-Pacific)
+correctly return is_on_land=False; land coordinates (Bhopal) return
+True. Full pipeline test confirms invalid sites are rejected early
+with clear reasons, before any suitability/ML/financial computation
+runs — avoiding wasted computation and, more importantly, avoiding
+a misleading "suitability score" for a physically impossible location.

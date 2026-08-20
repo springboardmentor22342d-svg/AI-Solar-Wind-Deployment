@@ -11,13 +11,27 @@ from app.models.feature import Feature
 from app.services.feature_engineering.feature_builder import create_feature_builder
 from app.services.ml_prediction_service import MLPredictionService
 from app.ml.feature_schema import SOLAR_MODEL_FEATURE_SCHEMA, WIND_MODEL_FEATURE_SCHEMA
+from app.data_sources.land_mask import LandMaskClient
+from app.api import guidelines
 
 app = FastAPI(title="Solar & Wind Deployment Intelligence Platform")
+
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 Base.metadata.create_all(bind=engine)
 
 @app.on_event("startup")
 def startup_event():
+    app.state.feature_builder = create_feature_builder()
+    app.state.land_mask_client = LandMaskClient()
     app.state.feature_builder = create_feature_builder()
     app.state.solar_prediction_service = MLPredictionService(
         "solar_energy_model_final.pkl", SOLAR_MODEL_FEATURE_SCHEMA, "solar_irradiance"
@@ -40,10 +54,20 @@ app.include_router(energy.router)
 app.include_router(optimization.router)
 app.include_router(analysis.router)
 app.include_router(predict.router)
+app.include_router(guidelines.router)
 
 @app.get("/health")
 def health_check():
-    return {"status": "Running"}
+    checks = {"status": "Running", "database": "unknown", "models_loaded": "unknown"}
+    try:
+        from app.database.database import engine
+        with engine.connect():
+            checks["database"] = "connected"
+    except Exception:
+        checks["database"] = "unavailable"
+
+    checks["models_loaded"] = "yes" if hasattr(app.state, "solar_prediction_service") else "no"
+    return checks
 
 @app.get("/about")
 def about():

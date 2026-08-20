@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
-from typing import Optional, Any
+from typing import Optional, Any, List, Union
+
 
 class AnalysisRequest(BaseModel):
     latitude: float = Field(..., ge=-90, le=90)
@@ -13,10 +14,19 @@ class AnalysisResponse(BaseModel):
     project_name: Optional[str]
     latitude: float
     longitude: float
-    site_suitability: dict
-    recommended_deployment: dict
-    technical_feasibility: dict
-    energy_yield: dict
-    financial_metrics: dict
-    recommendation_reason: str
-    raw_features: dict
+    site_valid: bool
+    validity_reasons: Optional[Union[List[str], str]] = None
+    message: Optional[str] = None
+    site_suitability: Optional[dict] = None
+    recommended_deployment: Optional[dict] = None
+    technical_feasibility: Optional[dict] = None
+    energy_yield: Optional[dict] = None
+    energy_yield_rating: Optional[dict] = None
+    financial_metrics: Optional[dict] = None
+    recommendation_reason: Optional[str] = None
+    data_source: Optional[str] = None
+    solar_rating: Optional[str] = None
+    wind_rating: Optional[str] = None
+    analysis_basis: Optional[str] = None
+    raw_features: Optional[dict] = None
+    nearby_installation: Optional[dict] = None
