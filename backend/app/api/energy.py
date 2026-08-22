@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Request, Query
+from fastapi import APIRouter, Request, Query, Depends
 from app.services.energy_estimation_service import estimate_site_energy
 from app.services.deployment_strategy import build_deployment_recommendation
+from app.auth.security import get_current_user
+from app.models.user import User
 
 router = APIRouter()
 
@@ -10,6 +12,7 @@ def get_energy_estimate(
     latitude: float = Query(..., ge=-90, le=90),
     longitude: float = Query(..., ge=-180, le=180),
     installed_capacity_kw: float = Query(..., gt=0),
+    current_user: User = Depends(get_current_user),
 ):
     builder = request.app.state.feature_builder
     features = builder.build(latitude, longitude)

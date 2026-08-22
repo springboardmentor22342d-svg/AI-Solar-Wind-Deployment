@@ -2,7 +2,7 @@ const API_BASE_URL = "http://127.0.0.1:8000";
 
 export async function login(email, password) {
   const formData = new URLSearchParams();
-  formData.append("username", email); // FastAPI's OAuth2 form expects "username"
+  formData.append("username", email);
   formData.append("password", password);
 
   const response = await fetch(`${API_BASE_URL}/login`, {
@@ -17,14 +17,14 @@ export async function login(email, password) {
     throw new Error("Invalid email or password.");
   }
 
-  return response.json(); // { access_token, token_type }
+  return response.json();
 }
 
-export async function register(name, email, password) {
+export async function register(name, email, password, role = "Renewable Energy Planner") {
   const response = await fetch(`${API_BASE_URL}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password }),
+    body: JSON.stringify({ name, email, password, role }),
   });
 
   if (!response.ok) {

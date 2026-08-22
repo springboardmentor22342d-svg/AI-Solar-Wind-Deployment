@@ -1,7 +1,7 @@
 # Database Design Draft
 
 **Project:** Solar & Wind Deployment Intelligence Platform
-**Database:** PostgreSQL + PostGIS (primary), MongoDB (secondary/unstructured logs)
+**Database:** **Database:** PostgreSQL + PostGIS
 
 ---
 
@@ -16,8 +16,8 @@
 | EnvironmentalData | ⚠️ Merged into Sites | Fields (forest_pct, settlement proximity, etc.) now live directly on the Sites table |
 | SolarPrediction | ⚠️ Merged into Sites | Fields (GHI, GTI, OPTA) now live directly on the Sites table |
 | WindPrediction | ⚠️ Merged into Sites | Fields (wind_speed_100m, power_density_100m) now live directly on the Sites table |
-| SuitabilityScore | ❌ Not yet implemented | Planned for Milestone 3 |
-| Reports | ❌ Not yet implemented | Planned for Milestone 4 |
+| SuitabilityScore | ⚠️ Computed live, not persisted | Scoring logic implemented (`GET /scoring/site`), but results aren't yet saved to a dedicated table |
+| Reports | ⚠️ Implemented client-side only | Per-site PDF export via browser print (frontend); no backend table, no persisted report history |
 
 **Design decision:** Environmental, solar, and wind data were merged directly into the Sites table instead of using separate linked tables, since each site currently has exactly one value per feature (not multiple historical readings). This avoids unnecessary joins for the current scope. If the project later needs to track multiple predictions per site over time (e.g., comparing model versions), these could be split back into separate tables at that point.
 

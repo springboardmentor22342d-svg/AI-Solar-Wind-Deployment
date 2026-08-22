@@ -28,18 +28,6 @@ app.add_middleware(
 
 Base.metadata.create_all(bind=engine)
 
-@app.on_event("startup")
-def startup_event():
-    app.state.feature_builder = create_feature_builder()
-    app.state.land_mask_client = LandMaskClient()
-    app.state.feature_builder = create_feature_builder()
-    app.state.solar_prediction_service = MLPredictionService(
-        "solar_energy_model_final.pkl", SOLAR_MODEL_FEATURE_SCHEMA, "solar_irradiance"
-    )
-    app.state.wind_prediction_service = MLPredictionService(
-        "wind_energy_model_final.pkl", WIND_MODEL_FEATURE_SCHEMA, "wind_speed"
-    )
-
 app.include_router(home.router)
 app.include_router(projects.router)
 app.include_router(sites.router)
@@ -81,6 +69,7 @@ from app.ml.feature_schema import (
 @app.on_event("startup")
 def startup_event():
     app.state.feature_builder = create_feature_builder()
+    app.state.land_mask_client = LandMaskClient()
     app.state.solar_prediction_service = MLPredictionService(
         "solar_energy_model_final.pkl", SOLAR_MODEL_FEATURE_SCHEMA, "solar_irradiance",
         top_features=SOLAR_TOP_FEATURES, primary_driver_label="solar irradiance"

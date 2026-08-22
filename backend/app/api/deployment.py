@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Request, Query
+from fastapi import APIRouter, Request, Query, Depends
 from app.services.deployment_strategy import build_deployment_recommendation
 from app.services.solar_assessment import classify_solar_site
 from app.services.wind_assessment import calculate_wind_class, classify_wind_site
+from app.auth.security import get_current_user
+from app.models.user import User
 
 router = APIRouter()
 
@@ -10,6 +12,7 @@ def get_deployment_recommendation(
     request: Request,
     latitude: float = Query(..., ge=-90, le=90),
     longitude: float = Query(..., ge=-180, le=180),
+    current_user: User = Depends(get_current_user),
 ):
     builder = request.app.state.feature_builder
     features = builder.build(latitude, longitude)

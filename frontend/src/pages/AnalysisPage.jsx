@@ -2,7 +2,7 @@ import { useState } from "react";
 import { runAnalysis } from "../api/analysis";
 import AnalysisResults from "../components/AnalysisResults";
 import GuidelinesPanel from "../components/GuidelinesPanel";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../context/AuthContext";
 
 function AnalysisPage() {
   const [latitude, setLatitude] = useState("");

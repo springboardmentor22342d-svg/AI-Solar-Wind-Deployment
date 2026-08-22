@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Request, Query
+from fastapi import APIRouter, Request, Query, Depends
 from app.evaluation.evaluator import evaluate_site
+from app.auth.security import get_current_user
+from app.models.user import User
 
 router = APIRouter()
 
@@ -8,6 +10,7 @@ def evaluate_location(
     request: Request,
     latitude: float = Query(..., ge=-90, le=90),
     longitude: float = Query(..., ge=-180, le=180),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Full live pipeline: coordinate in -> FeatureBuilder computes

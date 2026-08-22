@@ -1,7 +1,7 @@
 # Project Mapping Sheet
 
 **Project:** Solar & Wind Deployment Intelligence Platform
-**Last updated:** [11th july]
+**Last updated:** [22 August]
 
 | Module | Dataset(s) Used | Output |
 |---|---|---|
@@ -23,26 +23,6 @@
 ## Workflow
 
 ```
-Raw Datasets (Solar, Wind, Elevation, OSM, Land Use)
-   ↓
-Preprocessing (point/nearest-match extraction per site coordinate)
-   ↓
-Feature Table (site_features.csv)
-   ↓
-Database Layer (PostgreSQL — Users, Projects, Sites tables, via SQLAlchemy)
-   ↓
-API Layer (FastAPI — authenticated REST endpoints, Swagger-documented)
-   ↓
-Prediction (solar & wind models — pending, Milestone 2)
-   ↓
-Site Suitability Scoring (weighted combination — pending, Milestone 3)
-   ↓
-Dashboard & Reports (pending, Milestone 4)
-```
-
-## Workflow (Updated)
-
-```
 Raw Datasets (Solar rasters, Wind rasters, SRTM, OSM, Land Use)
    +
 Live APIs (NASA POWER — solar_irradiance, temperature, humidity)
@@ -56,9 +36,13 @@ Evaluation Module (constraints → weighted score → recommendation)
 Deployment Strategy (rule-based Solar/Wind/Hybrid/Not Recommended)
    ↓
 Live API layer (GET /evaluate, GET /deployment/recommend,
-                 GET /solar/features, GET /features/compute)
+                 GET /solar/features, GET /features/compute,
+                 GET /scoring/site, GET /optimization/plan)
    ↓
-[Next phase: ML-based prediction models]
+ML-based prediction models (Random Forest — solar & wind, implemented,
+                             exposed via GET /predict/solar, GET /predict/wind)
+   ↓
+[Next phase: role-based access control; reports/export implemented client-side]
 ```
 
 ## Notes on deviations from original plan

@@ -401,3 +401,21 @@
     height: 260px;
   }
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .analysis-results, .analysis-results * {
+    visibility: visible;
+  }
+  .analysis-results {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .print-hide {
+    display: none !important;
+  }
+}

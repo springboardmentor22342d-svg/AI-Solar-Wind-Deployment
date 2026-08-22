@@ -1,1 +1,0 @@
-{"latitude": 15.0, "longitude": 87.0, "project_name": "Ocean Test"}

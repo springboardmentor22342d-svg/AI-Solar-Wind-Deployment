@@ -43,6 +43,14 @@ function AnalysisResults({ data }) {
 
   return (
     <div className="analysis-results">
+      <button
+        className="primary-button print-hide"
+        onClick={() => window.print()}
+        style={{ marginBottom: "1rem" }}
+      >
+        Download Site Report (PDF)
+      </button>
+
       <Section title="SITE ANALYSIS">
         <Row label="Latitude" value={data.latitude} />
         <Row label="Longitude" value={data.longitude} />

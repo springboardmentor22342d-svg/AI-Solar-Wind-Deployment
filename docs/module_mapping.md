@@ -84,14 +84,20 @@ Status : Implemented - postgresql
 ## 6. Reports
 | Aspect | Detail |
 |---|---|
-| Responsibility | Generate PDF/Excel exports summarizing site assessments, feasibility, and investment recommendations |
-| Inputs | SuitabilityScore, SolarPrediction, WindPrediction, Project data |
-| Outputs | Downloadable report file |
-| Backend location | `backend/app/services/report_service.py` |
-| Related DB table | Reports |
+| Responsibility | Generate PDF exports summarizing site assessments, feasibility, and investment recommendations |
+| Inputs | Same data already shown on the Analysis page (site suitability, energy yield, financial metrics) |
+| Outputs | Downloadable PDF, generated client-side |
+| Frontend location | `frontend/src/components/AnalysisResults.jsx` (print button + print stylesheet in `App.css`) |
+| Backend involvement | None — no `Reports` table, no server-side generation |
 
-Status : not started
-
+Status : ✅ Implemented (client-side). Uses the browser's native
+print-to-PDF via `window.print()` with a dedicated print stylesheet,
+rather than a backend-generated file. Covers single-site reports;
+does not cover project-level or multi-site batch reports, and there's
+no server-side record that a report was generated (no `Reports` table,
+no audit trail). A backend PDF/Excel service (as originally scoped)
+remains a possible future upgrade if server-side generation or
+persistent report history is needed.
 ---
 
 ## 7. Dashboard
@@ -163,3 +169,5 @@ ML-based prediction of annual wind energy output (kWh/year) for a
 5000kW reference installation, using a trained Random Forest model.
 Query params: latitude, longitude.
 Response `200`: {"latitude": float, "longitude": float, "prediction_kwh_year": float, "error": null}
+
+

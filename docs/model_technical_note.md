@@ -26,7 +26,7 @@
 
 2. **Reference capacity assumption.** All predictions are generated for a fixed 5,000 kW reference installation. Actual predictions scale linearly with installed capacity but are not currently parameterized by capacity as a model input.
 
-3. **Missing-data handling.** Approximately 10 sites (out of 1,310) were excluded from training due to missing land-use or climate data, primarily in disputed border regions with incomplete geospatial coverage (see dataset_summary.md).
+3. **Missing-data handling.** Approximately 10 sites (out of 1,310) were excluded from training due to missing land-use or climate data, primarily in disputed border regions with incomplete geospatial coverage (see docs/weekly_notes/data_summary.md).
 
 4. **Single-year snapshot data.** Training features reflect current/recent averaged conditions (e.g., annual climatology), not multi-year historical trends — relevant context for the upcoming Investment Analysis module, which may require longer time horizons.
 

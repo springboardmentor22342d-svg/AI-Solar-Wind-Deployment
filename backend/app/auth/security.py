@@ -43,7 +43,6 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-SECRET_KEY = "change-this-to-a-random-secret-string"  # move to an env variable later
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
@@ -58,3 +57,17 @@ def create_access_token(data: dict) -> str:
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def require_role(allowed_roles: list[str]):
+    """
+    Returns a dependency that checks the current user's role against
+    an allowed list. Use as: Depends(require_role(["Administrator"]))
+    """
+    def role_checker(current_user: User = Depends(get_current_user)) -> User:
+        if current_user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=403,
+                detail=f"This action requires one of these roles: {', '.join(allowed_roles)}. Your role: {current_user.role}",
+            )
+        return current_user
+    return role_checker

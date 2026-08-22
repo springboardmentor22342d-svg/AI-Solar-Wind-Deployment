@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { login } from "../api/auth";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../context/AuthContext";
 
-function LoginPage({ onLoginSuccess }) {
+
+
+function LoginPage({ onLoginSuccess, onSwitchToRegister }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -61,6 +63,13 @@ function LoginPage({ onLoginSuccess }) {
           </button>
 
           {error && <p className="error-message">{error}</p>}
+
+          <p style={{ marginTop: "1rem", textAlign: "center" }}>
+          Don't have an account?{" "}
+          <button onClick={onSwitchToRegister} style={{ background: "none", border: "none", color: "blue", cursor: "pointer", textDecoration: "underline" }}>
+            Register
+          </button>
+        </p>
         </div>
       </section>
     </div>

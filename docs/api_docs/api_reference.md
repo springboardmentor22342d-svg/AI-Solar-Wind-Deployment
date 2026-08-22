@@ -181,11 +181,6 @@ Creates a new site record. Requires a valid token.
 ---
 
 ## Planned (not yet implemented)
-
-| Endpoint | Purpose | Target milestone |
-|---|---|---|
-| `POST /predictions/solar` | Predict solar output for a given site | Milestone 2 |
-| `POST /predictions/wind` | Predict wind output for a given site | Milestone 2 |
 | `GET /sites/{id}/suitability` | Return weighted suitability score for a site | Milestone 3 |
 | `GET /reports/{project_id}` | Generate PDF/Excel report for a project | Milestone 4 |
 
@@ -194,7 +189,7 @@ Creates a new site record. Requires a valid token.
 ## Authentication Notes
 
 - Passwords are hashed using bcrypt via passlib — never stored or logged in plain text.
-- Tokens are JWTs, valid for 60 minutes, signed with a secret key (currently hardcoded for development — flagged for migration to an environment variable before any deployment).
+- Tokens are JWTs, valid for 60 minutes, signed with a secret key loaded from an environment variable (SECRET_KEY in .env)..
 - Roles supported: Renewable Energy Planner, GIS Analyst, Project Manager, Administrator. Role-based permission enforcement (beyond basic login-required checks) is not yet implemented.
 
 ### `GET /solar/features`
@@ -230,3 +225,35 @@ ML-based prediction of annual solar energy output (kWh/year) for a
 Query params: latitude, longitude.
 Response `200`: {"latitude": float, "longitude": float, "prediction_kwh_year": float, "error": null}
 Response includes "error" field (non-null) if required features are missing.
+
+### `GET /predict/wind`
+ML-based prediction of annual wind energy output (kWh/year) for a
+5000kW reference installation, using a trained Random Forest model.
+Query params: latitude, longitude.
+Response `200`: {"latitude": float, "longitude": float, "prediction_kwh_year": float, "error": null}
+
+### `GET /evaluate`
+Full live pipeline: coordinate in -> FeatureBuilder computes features -> evaluator scores and recommends -> combined result out.
+Query params: latitude, longitude.
+
+### `GET /energy/estimate`
+Estimates annual energy output for a site given a deployment type and installed capacity.
+Query params: latitude, longitude, installed_capacity_kw.
+
+### `GET /features/compute`
+Live feature computation for a coordinate (no database involved).
+Query params: latitude, longitude.
+
+### `POST /features` / `GET /features` / `GET /features/{feature_id}`
+Stored feature records (Feature Store / database-backed), separate from the live `/features/compute` endpoint.
+
+### `GET /scoring/site`
+Returns the composite suitability score for a single coordinate.
+Query params: latitude, longitude.
+
+### `GET /scoring/rank-sample`
+Demonstrates ranking using a small fixed set of Indian cities (Bhopal, Jodhpur, Chennai).
+
+### `GET /optimization/plan`
+Recommends technology, capacity, and expansion feasibility for a site given land area.
+Query params: latitude, longitude, land_area_hectares, grid_capacity_limit_mw (optional).
