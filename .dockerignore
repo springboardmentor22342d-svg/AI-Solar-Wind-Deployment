@@ -1,0 +1,18 @@
+# Virtual environment & caches
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.git/
+.gitignore
+
+# Ignore large raw datasets and trained model artifacts
+*.csv
+*.joblib
+*.pkl
+*.parquet
+data/
+models/
+notebooks/
+datasets/
