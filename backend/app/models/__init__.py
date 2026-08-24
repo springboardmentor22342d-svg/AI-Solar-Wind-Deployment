@@ -1,3 +1,4 @@
+from app.models.feature import Feature
 """
 Models Package Initialization
 Imports all SQLAlchemy ORM models to ensure full registry configuration across relationships.

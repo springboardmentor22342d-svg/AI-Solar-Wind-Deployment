@@ -1,3 +1,18 @@
+from sqlalchemy import Column, Integer, Float, DateTime
+from datetime import datetime
+from app.database.database import Base
+class Feature(Base):
+    __tablename__ = "features"
+    id = Column(Integer, primary_key=True, index=True)
+    latitude = Column(Float,nullable=False)
+    longitude = Column(Float,nullable=False)
+    solar_irradiance = Column(Float)
+    wind_speed = Column(Float)
+    temperature = Column(Float)
+    humidity = Column(Float)
+    elevation = Column(Float)
+    slope = Column(Float)
+    created_at = Column(DateTime,default=datetime.utcnow)
 from sqlalchemy import Column, Integer, Float, DateTime, String, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
