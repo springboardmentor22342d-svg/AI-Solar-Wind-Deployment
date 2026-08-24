@@ -1,3 +1,6 @@
+from sqlalchemy import Column, Integer, String, Float, DateTime
+from datetime import datetime
+from backend.app.database.database import Base
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -9,6 +12,11 @@ class Project(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     project_name = Column(String, nullable=False)
+    description = Column(String)
+    state = Column(String, nullable=False)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
     region = Column(String, nullable=False)
     description = Column(String, nullable=True)
     status = Column(String, nullable=False, default="Draft")

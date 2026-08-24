@@ -1,4 +1,14 @@
 # Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
 __pycache__/
 *.py[cod]
 *.pyo
@@ -16,12 +26,19 @@ frontend/node_modules/
 
 # Build files
 dist/
+frontend/dist/
 build/
 
 # IDE
 .vscode/
 .idea/
 
+# Testing / cache
+.pytest_cache/
+.mypy_cache/
+
+# Logs
+*.log
 # OS
 .DS_Store
 Thumbs.db
@@ -47,6 +64,15 @@ backend/.pytest_cache/
 # OS
 .DS_Store
 Thumbs.db
+
+# Trained model files
+models/*.pkl
+
+# Large datasets
+datasets/
+
+# README
+README.md
 # Large/local datasets
 datasets/sentinel/EuroSat_RGB/
 

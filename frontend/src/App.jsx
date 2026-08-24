@@ -1,3 +1,10 @@
+import AnalysisPage from "./pages/AnalysisPage";
+
+function App() {
+  return <AnalysisPage />;
+}
+
+export default App;
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'

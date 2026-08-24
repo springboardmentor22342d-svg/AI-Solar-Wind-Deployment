@@ -1,0 +1,614 @@
+/* ================================
+   GLOBAL
+================================ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f4f7fb;
+  color: #1f2937;
+}
+
+.analysis-page {
+  min-height: 100vh;
+  background: #f4f7fb;
+}
+
+
+/* ================================
+   HEADER
+================================ */
+
+.analysis-header {
+  height: 70px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 40px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #facc15;
+  font-size: 22px;
+}
+
+.logo h1 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.logo p {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+
+/* ================================
+   PAGE CONTENT
+================================ */
+
+.analysis-container {
+  max-width: 1500px;
+  margin: auto;
+  padding: 30px 40px;
+}
+
+.page-title {
+  margin-bottom: 25px;
+}
+
+.page-title h2 {
+  font-size: 28px;
+  margin-bottom: 7px;
+}
+
+.page-title p {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+
+/* ================================
+   MAIN GRID
+================================ */
+
+.analysis-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+
+/* ================================
+   LEFT PANEL
+================================ */
+
+.control-panel {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 24px;
+
+  border: 1px solid #e5e7eb;
+
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.control-panel h3 {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 7px;
+
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-group input {
+  width: 100%;
+  height: 45px;
+
+  padding: 0 13px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  font-size: 14px;
+  outline: none;
+
+  transition: 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+
+/* ================================
+   ANALYZE BUTTON
+================================ */
+
+.analyze-button {
+  width: 100%;
+  height: 46px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #2563eb;
+  color: white;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.analyze-button:hover {
+  background: #1d4ed8;
+}
+
+.analyze-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+
+/* ================================
+   MAP SECTION
+================================ */
+
+.map-section {
+  background: #ffffff;
+  border-radius: 14px;
+
+  border: 1px solid #e5e7eb;
+
+  overflow: hidden;
+
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.map-header {
+  height: 60px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 20px;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.map-header h3 {
+  font-size: 17px;
+}
+
+.coordinates {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.map-container {
+  width: 100%;
+  height: 550px;
+
+  position: relative;
+  overflow: hidden;
+}
+
+.map-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+
+/* ================================
+   MAP OVERLAY
+================================ */
+
+.map-overlay {
+  position: absolute;
+
+  top: 20px;
+  left: 20px;
+
+  background: rgba(255, 255, 255, 0.95);
+
+  padding: 12px 15px;
+
+  border-radius: 8px;
+
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+
+  z-index: 10;
+}
+
+.map-overlay p {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.map-overlay strong {
+  color: #111827;
+}
+
+
+/* ================================
+   STATUS
+================================ */
+
+.status-message {
+  margin-top: 15px;
+
+  padding: 12px 15px;
+
+  border-radius: 8px;
+
+  font-size: 13px;
+}
+
+.status-loading {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.status-success {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.status-error {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+
+/* ================================
+   RESULTS
+================================ */
+
+.results-section {
+  margin-top: 30px;
+}
+
+.results-title {
+  margin-bottom: 18px;
+}
+
+.results-title h3 {
+  font-size: 21px;
+}
+
+.results-grid {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 18px;
+}
+
+
+/* ================================
+   RESULT CARD
+================================ */
+
+.result-card {
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 12px;
+
+  padding: 20px;
+
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+
+  transition: 0.2s;
+}
+
+.result-card:hover {
+  transform: translateY(-3px);
+
+  box-shadow: 0 7px 20px rgba(0, 0, 0, 0.08);
+}
+
+.result-card-header {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  margin-bottom: 15px;
+}
+
+.result-icon {
+  width: 38px;
+  height: 38px;
+
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 18px;
+}
+
+.result-card h4 {
+  font-size: 15px;
+}
+
+.result-value {
+  font-size: 27px;
+  font-weight: 700;
+
+  margin-bottom: 5px;
+}
+
+.result-unit {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+
+/* ================================
+   SOLAR
+================================ */
+
+.solar-icon {
+  background: #fef3c7;
+}
+
+.solar-value {
+  color: #d97706;
+}
+
+
+/* ================================
+   WIND
+================================ */
+
+.wind-icon {
+  background: #dbeafe;
+}
+
+.wind-value {
+  color: #2563eb;
+}
+
+
+/* ================================
+   SCORE
+================================ */
+
+.score-icon {
+  background: #dcfce7;
+}
+
+.score-value {
+  color: #16a34a;
+}
+
+
+/* ================================
+   DISTANCE
+================================ */
+
+.distance-icon {
+  background: #f3e8ff;
+}
+
+.distance-value {
+  color: #9333ea;
+}
+
+
+/* ================================
+   RECOMMENDATION
+================================ */
+
+.recommendation-card {
+  margin-top: 20px;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 14px;
+
+  padding: 25px;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+}
+
+.recommendation-content h3 {
+  font-size: 18px;
+
+  margin-bottom: 8px;
+}
+
+.recommendation-content p {
+  color: #6b7280;
+
+  font-size: 14px;
+
+  max-width: 700px;
+
+  line-height: 1.6;
+}
+
+.recommendation-badge {
+  padding: 12px 22px;
+
+  border-radius: 30px;
+
+  background: #dcfce7;
+
+  color: #15803d;
+
+  font-weight: 700;
+
+  font-size: 14px;
+}
+
+
+/* ================================
+   SCORE BAR
+================================ */
+
+.score-bar-container {
+  margin-top: 15px;
+}
+
+.score-bar {
+  width: 100%;
+
+  height: 9px;
+
+  background: #e5e7eb;
+
+  border-radius: 10px;
+
+  overflow: hidden;
+}
+
+.score-progress {
+  height: 100%;
+
+  background: #22c55e;
+
+  border-radius: 10px;
+
+  transition: width 0.5s ease;
+}
+
+
+/* ================================
+   FOOTER
+================================ */
+
+.analysis-footer {
+  margin-top: 40px;
+
+  padding: 20px;
+
+  text-align: center;
+
+  color: #6b7280;
+
+  font-size: 12px;
+
+  border-top: 1px solid #e5e7eb;
+}
+
+
+/* ================================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 1100px) {
+
+  .analysis-layout {
+    grid-template-columns: 300px 1fr;
+  }
+
+  .results-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+}
+
+@media (max-width: 800px) {
+
+  .analysis-header {
+    padding: 0 20px;
+  }
+
+  .analysis-container {
+    padding: 20px;
+  }
+
+  .analysis-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .map-container {
+    height: 450px;
+  }
+
+}
+
+@media (max-width: 500px) {
+
+  .analysis-header {
+    height: auto;
+
+    padding: 15px;
+
+    flex-direction: column;
+
+    gap: 10px;
+  }
+
+  .results-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recommendation-card {
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 20px;
+  }
+
+  .map-container {
+    height: 350px;
+  }
+
+}
