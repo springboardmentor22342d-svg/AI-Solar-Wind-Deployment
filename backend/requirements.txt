@@ -1,53 +1,41 @@
-fastapi==0.140.0
-uvicorn==0.51.0
-sqlalchemy==2.0.51
-geoalchemy2==0.20.0
-psycopg2-binary==2.9.12
-pymongo==4.17.0
-xgboost==3.2.0
-lightgbm==4.7.0
-scikit-learn==1.9.0
-tensorflow==2.21.0
-torch==2.13.0
-pandas==3.0.5
-numpy==2.4.6
-geopandas==1.1.4
-rasterio==1.4.4
-shapely==2.1.2
-gdal==3.13.2
-requests==2.34.2
-python-jose==3.5.0
-authlib==1.7.2
-pydantic==2.13.4
-python-dotenv==1.2.2
-pytest==9.1.1
-alembic==1.18.5
-passlib==1.7.4
-bcrypt==4.3.0
-python-multipart==0.0.32
-pydantic-settings==2.14.2
-email-validator==2.3.0
-httpx==0.28.1
-reportlab==5.0.0
-openpyxl==3.1.5
+# ==============================================================================
+# RENEWABLE ENERGY SITE INTELLIGENCE ENGINE - BACKEND REQUIREMENTS
+# Python Compatibility: >= 3.11, < 3.14
+# ==============================================================================
 
-# Solar & Wind Deployment Intelligence Platform - Backend Requirements
+# --- Core Web Framework & Server ---
+fastapi>=0.110.0,<1.0.0
+uvicorn[standard]>=0.28.0,<1.0.0
+pydantic>=2.6.0,<3.0.0
+python-dotenv>=1.0.1,<2.0.0
 
-fastapi>=0.100.0
-uvicorn[standard]>=0.22.0
-pydantic>=2.0.0
-numpy>=1.24.0
-pandas>=2.0.0
-scikit-learn>=1.2.0
-joblib>=1.3.0
-python-dotenv>=1.0.0
-requests>=2.31.0
-sqlalchemy>=2.0.0
-passlib[bcrypt]>=1.7.4
-bcrypt>=4.0.0
+# --- Database & ORM ---
+sqlalchemy>=2.0.28,<3.0.0
+
+# --- Machine Learning & Data Processing ---
+pandas>=2.2.0,<3.0.0
+numpy>=1.26.0,<2.5.0
+scikit-learn>=1.4.0,<2.0.0
+joblib>=1.3.2,<2.0.0
+
+# --- HTTP Client & External API Integrations (NASA POWER, OpenStreetMap) ---
+requests>=2.31.0,<3.0.0
+urllib3>=2.2.0,<3.0.0
+
+# --- Testing & Quality Assurance ---
+pytest>=8.0.0,<9.0.0
+anyio>=4.3.0,<5.0.0
+
+# --- Rate Limiting & Security ---
+slowapi>=0.1.10,<1.0.0
+limits>=2.3.0,<6.0.0
+
+# --- Authentication & Cryptography ---
+email-validator
 python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.0.1
 python-multipart>=0.0.6
-email-validator>=2.0.0
-httpx>=0.24.0
-pytest>=7.3.0
-anyio>=3.7.0
+
+psycopg2-binary>=2.9.9
+xgboost<3.0.0,>=1.7.0

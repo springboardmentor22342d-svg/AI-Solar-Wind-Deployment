@@ -1,342 +1,133 @@
-from fastapi import FastAPI
+import os
+import sys
+import logging
+import subprocess
+import asyncio
+from contextlib import asynccontextmanager
+import uvicorn
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.auth import router as auth_router
+from fastapi.responses import JSONResponse
+from dotenv import load_dotenv
+
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
+from app.core.rate_limiter import limiter
+from app.core.security_middleware import SecurityHeadersMiddleware
+from app.auth.router import router as auth_router
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger("security")
+
+# 1. Database Configuration & Models
+from app.database.database import Base, engine
+import app.models  # Imports all database ORM models
+
+# 2. API Router Imports
+from app.api.home import router as home_router
+from app.api.predictions import router as predictions_router
 from app.api.projects import router as projects_router
 from app.api.sites import router as sites_router
-from app.api.environmental import router as environmental_router
-from app.api.predictions import router as predictions_router
-from app.api.suitability import router as suitability_router
-from app.api.scoring import router as scoring_router
-from app.api.forecasting import router as forecasting_router
-from app.api.optimization import router as optimization_router
-from app.api.admin import router as admin_router
-from app.api.dashboards import router as dashboards_router
-from app.api.notifications import router as notifications_router
-from app.api.reports import router as reports_router
-from app.db.mongo import init_mongo
-from contextlib import asynccontextmanager
+from app.api.saved_sites import router as saved_sites_router
+from app.api.recent_sites import router as recent_sites_router
+
+
+def run_db_initialization_and_seed():
+    """Create all schema tables and seed default users automatically."""
+    try:
+        # Create tables
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables initialized.")
+
+        # Execute seed script
+        seed_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), "scripts", "seed_users.py")
+        if not os.path.exists(seed_script):
+            seed_script = "scripts/seed_users.py"
+
+        if os.path.exists(seed_script):
+            result = subprocess.run([sys.executable, seed_script], capture_output=True, text=True)
+            logger.info(f"Database seeding completed: {result.stdout.strip()}")
+            if result.stderr:
+                logger.warning(f"Database seeding warnings: {result.stderr.strip()}")
+    except Exception as e:
+        logger.error(f"Error during DB startup initialization/seeding: {e}")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Setup Mongo indexes on startup
-    init_mongo()
+    # Run seeding in background to allow immediate port binding
+    asyncio.create_task(asyncio.to_thread(run_db_initialization_and_seed))
     yield
+    # Cleanup logic (if any) runs on shutdown
 
+
+# 3. Fetch Server Configuration from Environment Variables
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", 8000))
+raw_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000"
+)
+ALLOWED_ORIGINS = [origin.strip() for origin in raw_origins.split(",") if origin.strip() and origin.strip() != "*"]
+
+# 4. Initialize FastAPI Application
 app = FastAPI(
-    title="Solar & Wind Deployment Intelligence Platform API",
+    title="AI Solar & Wind Deployment Intelligence",
+    description="Backend orchestration layer for GIS site suitability, energy estimation, power forecasting, and financial analysis.",
     version="1.0.0",
     lifespan=lifespan
 )
 
-# CORS Middleware setup
+# 5. Configure Spec-Compliant CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-
-from app.database.database import (
-    engine,
-    Base,
-)
-
-from app.models.project import Project
-from app.models.feature import Feature
-
-from app.api.home import (
-    router as home_router,
-)
-
-from app.api.projects import (
-    router as projects_router,
-)
-
-from app.api.sites import (
-    router as sites_router,
-)
-
-from app.api.predictions import (
-    router as predictions_router,
-)
-
-from app.api.feature import (
-    router as feature_router,
-)
-
-from app.api.evaluation import (
-    router as evaluation_router,
-)
-
-from app.api.solar import (
-    router as solar_router,
-)
-
-from app.api.analysis import (
-    router as analysis_router,
-)
-
-
-app = FastAPI(
-    title=(
-        "AI-Powered Solar & Wind "
-        "Deployment Intelligence Platform"
-    )
-)
-
-
-app.add_middleware(
-    CORSMiddleware,
-
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
-
-    allow_credentials=True,
-
-    allow_methods=["*"],
-
-    allow_headers=["*"],
-)
-
-
-app.include_router(
-    home_router
-)
-
-app.include_router(
-    projects_router
-)
-
-app.include_router(
-    sites_router
-)
-
-app.include_router(
-    predictions_router
-)
-
-app.include_router(
-    feature_router
-)
-
-app.include_router(
-    evaluation_router
-)
-
-app.include_router(
-    solar_router
-)
-
-app.include_router(
-    analysis_router
-)
-
-
-Base.metadata.create_all(
-    bind=engine
-)
-
-
-@app.get("/health")
-def health():
-
-    return {
-        "status": "healthy",
-        "service":
-            "renewable-energy-analysis",
-    }
-from app.api.analysis import router as analysis_router
-
-app = FastAPI(
-    title="Solar & Wind Deployment Intelligence Platform API",
-    description="Backend API for hybrid wind-solar site intelligence assessments.",
-    version="1.0.0"
-)
-
-# CORS configurations
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Permits requests from localhost:5173 / frontend ports
-"""
-Solar & Wind Deployment Intelligence Platform - FastAPI Main Application
-"""
-
-import os
-import logging
-from pathlib import Path
-from fastapi import FastAPI, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from app.config import settings, BASE_DIR
-
-logger = logging.getLogger("app.main")
-logging.basicConfig(level=logging.INFO)
-
-logger.info("Initializing %s v%s", settings.PROJECT_NAME, settings.VERSION)
-
-from app.api.home import router as home_router
-from app.api.projects import router as project_router
-from app.api.sites import router as site_router
-from app.api.predictions import router as prediction_router
-from app.api import features
-from app.api import solar
-from app.api.auth import router as auth_router
-from app.api.assessment import router as assessment_router
-from app.api.dashboard import router as dashboard_router
-from app.api.reports import router as reports_router
-from app.api.feature_store import router as feature_store_router
-from app.api.pipeline import router as pipeline_router
-from app.api.analysis import router as analysis_router
-from app.api.forecasting import router as forecasting_router
-from app.api.ml import router as ml_router
-
-from app.database.database import engine, Base
-from app.models.user import User
-from app.models.project import Project
-from app.models.site import Site
-from app.models.feature import Feature
-from app.models.report import Report
-from app.models.assessment import Assessment
-from app.models.environmental_data import EnvironmentalData
-from app.models.solar_prediction import SolarPrediction
-from app.models.wind_prediction import WindPrediction
-from app.models.feature_store import FeatureStore
-
-app = FastAPI(
-    title="Solar & Wind Deployment Intelligence Platform",
-    description="AI-powered renewable energy site assessment and deployment intelligence.",
-    version="1.0.0"
-)
-
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-
-# Allow all localhost origins so Vite dev server port differences don't block CORS
-origins = [
-    frontend_url,
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:5175",
-    "http://localhost:3000",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",
-    "http://127.0.0.1:3000",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=ALLOWED_ORIGINS if ALLOWED_ORIGINS else ["*"],
+    allow_origin_regex=r"^https?:\/\/.*",  # Permissive origin matching compatible with credentials & local network IPs
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Register routers
-app.include_router(auth_router, prefix="/api")
-app.include_router(projects_router, prefix="/api")
-app.include_router(sites_router, prefix="/api")
-app.include_router(environmental_router, prefix="/api")
-app.include_router(predictions_router, prefix="/api")
-app.include_router(suitability_router, prefix="/api")
-app.include_router(scoring_router, prefix="/api")
-app.include_router(forecasting_router, prefix="/api")
-app.include_router(optimization_router, prefix="/api")
-app.include_router(admin_router, prefix="/api")
-app.include_router(dashboards_router, prefix="/api")
-app.include_router(notifications_router, prefix="/api")
-app.include_router(reports_router, prefix="/api")
+# 6. Attach Rate Limiter & Security Middlewares
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SecurityHeadersMiddleware)
 
-@app.get("/health")
-def health():
-    return {"status": "healthy"}
-# Include API routers
-app.include_router(analysis_router)
-
-@app.get("/")
-def home():
-    return {"message": "Solar Wind Deployment Intelligence API"}
-
-@app.get("/health")
+# 7. Container & Health Check Endpoints (Supports both GET and HEAD for Render probes)
+@app.api_route("/health", methods=["GET", "HEAD"], tags=["Health"])
+@app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
 def health_check():
-    return {"status": "Running"}
-
-@app.get("/about")
-def about_project():
-    return {"project": "Solar & Wind Deployment Intelligence Platform"}
-Base.metadata.create_all(bind=engine)
-
-app.include_router(home_router)
-app.include_router(auth_router)
-app.include_router(project_router)
-app.include_router(site_router)
-app.include_router(prediction_router)
-app.include_router(features.router)
-app.include_router(solar.router)
-app.include_router(assessment_router)
-app.include_router(dashboard_router)
-app.include_router(reports_router)
-app.include_router(feature_store_router)
-app.include_router(pipeline_router)
-app.include_router(analysis_router)
-app.include_router(forecasting_router)
-app.include_router(ml_router)
-
-
-@app.on_event("startup")
-def startup_model_validation():
-    """
-    Startup validation for ML inference artifacts: verifies best_model.joblib and feature_columns.json.
-    """
-    models_dir = BASE_DIR / "models"
-    best_model_path = models_dir / "best_model.joblib"
-    feature_columns_path = models_dir / "feature_columns.json"
-
-    missing = []
-    if not best_model_path.exists():
-        missing.append("best_model.joblib")
-    if not feature_columns_path.exists():
-        missing.append("feature_columns.json")
-
-    if missing:
-        print(f"WARNING: Startup validation notice - missing required ML artifacts: {', '.join(missing)}. Call POST /ml/train to train and serialize models.")
-    else:
-        print("✓ Startup ML Validation Passed: best_model.joblib and feature_columns.json verified.")
-
-
-
-
-@app.get("/")
-def root():
     return {
-        "message": "Solar & Wind Deployment Intelligence Platform API",
-        "google_oauth_configured": bool(
-            os.getenv("GOOGLE_CLIENT_ID")
-            and os.getenv("GOOGLE_CLIENT_SECRET")
-        ),
+        "status": "HEALTHY",
+        "service": "AI Solar & Wind Intelligence Engine",
+        "version": "1.0.0"
     }
 
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
-from app.auth.auth_handler import get_db, get_current_user
-from app.api.auth import login_for_access_token, register_user, refresh_token
-from app.schemas.user import UserCreate
+# 8. Register API Routers
+app.include_router(home_router, tags=["Home"])
+app.include_router(predictions_router, prefix="/predictions", tags=["Predictions"])
+app.include_router(projects_router, prefix="/projects", tags=["Projects"])
+app.include_router(sites_router, prefix="/sites", tags=["Sites"])
+app.include_router(saved_sites_router, prefix="/sites", tags=["Saved Sites"])
+app.include_router(recent_sites_router, prefix="/sites", tags=["Recent Sites"])
+app.include_router(auth_router)
 
-@app.post("/login", tags=["Root Authentication"])
-def root_login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    return login_for_access_token(form_data, db)
 
-@app.post("/register", tags=["Root Authentication"])
-def root_register(user_data: UserCreate, db: Session = Depends(get_db)):
-    return register_user(user_data, db)
+# 9. Global Exception Handler to sanitize 500 errors
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled error processing request {request.method} {request.url.path}: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "An internal server error occurred. Request logged for safety compliance."}
+    )
 
-@app.post("/refresh-token", tags=["Root Authentication"])
-def root_refresh_token(current_user = Depends(get_current_user)):
-    return refresh_token(current_user)
 
-from app.api.auth import get_profile, update_profile
-from app.schemas.user import ProfileUpdate
-
-@app.get("/profile", tags=["Root Profile"])
-def root_get_profile(current_user = Depends(get_current_user)):
-    return get_profile(current_user)
-
-@app.put("/profile", tags=["Root Profile"])
-def root_update_profile(profile_data: ProfileUpdate, current_user = Depends(get_current_user), db: Session = Depends(get_db)):
-    return update_profile(profile_data, current_user, db)
+# 10. Direct Execution Entry Point
+if __name__ == "__main__":
+    uvicorn.run("app.main:app", host=HOST, port=PORT, reload=True)

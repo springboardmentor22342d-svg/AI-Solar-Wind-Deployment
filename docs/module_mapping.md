@@ -1,329 +1,100 @@
-# Module Responsibility Mapping
+# Application Module Mapping & Traceability Matrix
 
-## Project Title
-AI-Powered Solar & Wind Deployment Intelligence Platform
+## 1. System High-Level Module Traceability
 
----
+The **AI Solar & Wind Deployment Intelligence Platform** is structured as an end-to-end decoupled system. Below is the mapping of components from the User Interface down to database storage models.
 
-## 1. Frontend Module
-
-### Responsibility
-- Provides the user interface.
-- Displays maps, charts, and analysis results.
-- Allows users to search for locations.
-- Sends requests to the backend APIs.
-- Shows recommended deployment sites.
-
-### Technologies
-- React
-- TypeScript
-- Vite
-- Leaflet
-- Chart.js
-
----
-
-## 2. Backend Module
-
-### Responsibility
-- Handles all API requests.
-- Processes user inputs.
-- Performs solar and wind suitability analysis.
-- Integrates GIS datasets.
-- Returns processed results to the frontend.
-
-### Technologies
-- FastAPI
-- Python
-- Uvicorn
-
----
-
-## 3. Dataset Module
-
-### Responsibility
-Stores all geospatial datasets required for analysis.
-
-### Datasets Used
-- NASA POWER (Solar Irradiance)
-- Global Wind Atlas (Wind Speed)
-- SRTM (Elevation)
-- OpenStreetMap (Roads & Infrastructure)
-- Sentinel (Satellite Imagery)
-
----
-
-## 4. AI/ML Module
-
-### Responsibility
-- Predicts suitable deployment locations.
-- Ranks locations based on multiple factors.
-- Generates recommendations for solar and wind installations.
-
-### Libraries
-- Scikit-learn
-- NumPy
-- Pandas
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. Frontend Layer (React 18 + Vite)                                         │
+│    • SiteAnalysisScreen.jsx  ──► Interactive Site Dashboard & Control Panel  │
+│    • SiteMap.jsx              ──► Spatial Visualizer & Lat/Lng Selector     │
+│    • SiteCompare.jsx          ──► Multi-Site Side-by-Side Comparison        │
+│    • src/api/client.js        ──► Central Axios HTTP Client (JWT Interceptor)│
+│    • src/api/analysis.js      ──► Pipeline API Service Invocations          │
+│    • src/api/sites.js         ──► Team Saved Sites Management Service       │
+└───────────────────────────────────┬─────────────────────────────────────────┘
+                                    │ HTTP / REST Payload
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2. Gateway Security & Middleware Layer                                      │
+│    • app/core/security_middleware.py ──► OWASP Security Headers Guard   │
+│    • app/core/rate_limiter.py       ──► SlowAPI IP-Based Rate Limiter       │
+│    • app/auth/dependencies.py        ──► Bearer JWT Authorization Injector  │
+└───────────────────────────────────┬─────────────────────────────────────────┘
+                                    │ Validated Request
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3. Backend API Router Tier (FastAPI)                                        │
+│    • app/api/predictions.py ──► /predictions/full-analysis, /forecast       │
+│    • app/api/saved_sites.py ──► /sites/saved (GET, POST, DELETE)            │
+│    • app/api/recent_sites.py──► /sites/recent (GET, POST)                   │
+│    • app/api/projects.py    ──► /projects (Workspace Project Management)    │
+│    • app/auth/router.py     ──► /auth/login, /auth/register, /auth/me        │
+└───────────────────────────────────┬─────────────────────────────────────────┘
+                                    │ Service Execution
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 4. Domain & Analytics Services Engine                                       │
+│    • app/services/analysis_pipeline.py ──► Central Pipeline Orchestrator    │
+│    • app/services/nasa_power_service.py──► NASA POWER Meteorological Fetch │
+│    • app/evaluation/scorer.py          ──► Multi-Criteria Suitability Scorer│
+│    • app/evaluation/constraints.py     ──► Spatial Buffer & Slope Screening │
+│    • app/services/forecasting_service.py─► ML Generation Forecasting       │
+│    • app/services/financial_service.py ──► 25-Yr NPV/IRR/LCOE Valuation     │
+└───────────────────────────────────┬─────────────────────────────────────────┘
+                                    │ ORM Persistence
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 5. Database Storage Layer (SQLAlchemy ORM + SQLite / PostgreSQL)            │
+│    • app/models/user.py               ──► User & Role Credentials           │
+│    • app/models/project.py            ──► Team Projects                     │
+│    • app/models/site.py               ──► Site Records & Coordinates        │
+│    • app/models/saved_site.py         ──► Favorite Workspace Sites          │
+│    • app/models/recent_site.py        ──► Team Evaluation Search History    │
+│    • app/models/prediction.py         ──► Forecasted Inferences             │
+│    • app/models/environmental_data.py ──► NASA POWER Climate Records        │
+│    • app/models/suitability_score.py  ──► MCDA Score Breakdown             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 5. GIS Processing Module
+## 2. End-to-End Data Flow Mapping
 
-### Responsibility
-- Reads raster and vector datasets.
-- Combines multiple spatial layers.
-- Calculates terrain characteristics.
-- Performs spatial suitability analysis.
+### Execution Flow: Site Assessment & ML Yield Prediction
 
-### Libraries
-- GeoPandas
-- Rasterio
-- Shapely
-
----
-
-## 6. Reports Module
-
-### Responsibility
-- Generates deployment reports.
-- Summarizes analysis results.
-- Stores generated reports.
+1. **User Action**: User clicks a point on `SiteMap.jsx` or enters coordinates on `SiteAnalysisScreen.jsx` and clicks "Run Analysis".
+2. **Frontend Request**: `src/api/analysis.js::runFullSiteAnalysis()` sends POST request to `/predictions/full-analysis`.
+3. **Gateway Verification**:
+   - `app/core/security_middleware.py` attaches OWASP security headers.
+   - `app/core/rate_limiter.py` verifies request is within 20 requests/minute compute limit.
+4. **Router Dispatch**: `app/api/predictions.py::execute_full_standardized_analysis()` delegates request to `app/services/analysis_pipeline.py`.
+5. **Data Orchestration**:
+   - `nasa_power_service.py` fetches solar GHI ($\text{kWh/m}^2/\text{day}$) and $100\text{m}$ wind speed ($\text{m/s}$).
+   - `constraints.py` checks slope angle and 150m river exclusion buffers.
+   - `scorer.py` evaluates 0-100 MCDA category scores.
+   - `forecasting_service.py` executes RandomForest inference (`models/power_forecaster.joblib`).
+   - `financial_service.py` calculates 25-year NPV, IRR %, LCOE, and payback period.
+6. **Persistence**: Evaluation, climate data, and predictions are auto-persisted to `environmental_data`, `predictions`, and `suitability_scores` DB tables via SQLAlchemy.
+7. **Response & Rendering**: Standardized JSON payload returned to frontend. Dashboard renders KPI tiles, energy curves, and PDF/Excel report capabilities.
 
 ---
 
-## 7. Docker Module
+## 3. Frontend Architecture & Directory Reconciliation
+
+To ensure compliance with enterprise React design standards, the frontend leverages an **Adapter/Facade Pattern**:
+- **`src/pages/`**: Serves as entrypoints for React Router routes.
+- **`src/components/`**: Manages modular UI elements, authentication workflows, spatial Leaflet canvas, and live assessment state.
+- **`src/services/`**: Aggregates business logic, unified API networking services, and client-side export helpers.
+
+### Module Reconciliation Table
+
+| Required Directory File | Actual Implementation / Target | Architectural Purpose |
+| :--- | :--- | :--- |
+| `frontend/src/pages/DashboardPage.jsx` | `frontend/src/components/SiteAnalysisScreen.jsx` | Top-level route container hosting interactive map & live assessment cards. |
+| `frontend/src/pages/LoginPage.jsx` | `frontend/src/components/auth/LoginPage.jsx` | Route view wrapping user login form and authentication state. |
+| `frontend/src/pages/RegisterPage.jsx` | `frontend/src/components/auth/RegisterPage.jsx` | Route view wrapping registration and validation handlers. |
+| `frontend/src/services/apiService.js` | `frontend/src/api/` (`client.js`, `analysis.js`, `sites.js`, `auth.js`) | Unified API service facade aggregating all backend communication. |
+| `frontend/src/services/exportService.js` | Standalone utility functions | Report download handler (CSV export with UTF-8 BOM, JSON export, PDF print). |
 
-### Responsibility
-- Containerizes the application.
-- Ensures consistent deployment.
-- Manages frontend and backend services.
-
----
-
-# Overall Workflow
-
-User
-↓
-Frontend (React)
-↓
-Backend API (FastAPI)
-↓
-GIS Processing + AI Analysis
-↓
-Datasets
-    ├── NASA POWER
-    ├── Global Wind Atlas
-    ├── SRTM
-    ├── OpenStreetMap
-    └── Sentinel
-↓
-Suitability Analysis
-↓
-Recommended Deployment Locations
-↓
-Frontend Dashboard
-This document maps out the system components and module boundaries for the Solar & Wind Deployment Intelligence Platform.
-
----
-
-## 1. Authentication Module
-* **Responsibilities**: 
-  - Manage user registration and secure login.
-  - Issue JWT tokens for secure authentication.
-  - Implement role-based access control (RBAC) (e.g. Admin, Analyst).
-* **Inputs**: User login credentials (email, password).
-* **Outputs**: Verification status, JSON Web Tokens (JWT).
-
----
-
-## 2. Solar Prediction Module
-* **Responsibilities**:
-  - Parse NASA POWER solar dataset data.
-  - Calculate solar irradiation indexes (GHI, DNI).
-  - Forecast energy outputs based on historical trends and local climates.
-* **Inputs**: Latitude, longitude, time range, NASA POWER API/CSV records.
-* **Outputs**: Hourly/daily solar energy generation estimates (kWh).
-
----
-
-## 3. Wind Prediction Module
-* **Responsibilities**:
-  - Process wind speed parameters (Global Wind Atlas profiles).
-  - Apply wind shear equations to extrapolate wind speed at custom turbine heights.
-  - Calculate power density and potential wind turbine output using energy yield models.
-* **Inputs**: Wind speed columns (at 10m, 50m, 100m heights) from CSV/API.
-* **Outputs**: Extrapolated wind speed profiles and projected electricity output (kWh).
-
----
-
-## 4. Site Suitability Module
-* **Responsibilities**:
-  - Combine elevation (SRTM) and land cover (Sentinel-2) layers.
-  - Apply spatial routing rules (e.g. proximity to OSM highways and power lines).
-  - Compute a weighted Suitability Index (0-100 score) for hybrid wind-solar installation.
-* **Inputs**: SRTM slope, Sentinel-2 classification, OSM infrastructure coordinates.
-* **Outputs**: Aggregated Site Suitability Index and filtering criteria (acceptable vs. excluded areas).
-
----
-
-## 5. Database Module
-* **Responsibilities**:
-  - Manage connection pooling with PostgreSQL.
-  - Handle CRUD queries via SQL Alchemy ORM models.
-  - Track database migration scripts and schema definitions.
-* **Inputs**: Application requests, configuration params.
-* **Outputs**: Retrieved records, commit confirmations.
-
----
-
-## 6. Reports Module
-* **Responsibilities**:
-  - Compile tabular solar/wind prediction and site metrics into files.
-  - Generate PDF summaries with embedded charts and Excel sheets for offline analysis.
-* **Inputs**: Aggregated suitability indexes and power yield predictions.
-* **Outputs**: Exportable PDF/XLSX files.
-
----
-
-## 7. Dashboard Module (Frontend)
-* **Responsibilities**:
-  - Render map visualizations of target terrain and grid networks.
-  - Plot interactive graphs (energy generation curves over time).
-  - Provide input widgets for adjusting site optimization weights.
-* **Inputs**: API responses (JSON).
-* **Outputs**: Interactive User Interface (charts, maps, data grids).
-
----
-
-## 8. API Services Module
-* **Responsibilities**:
-  - Expose REST API routing endpoints for frontend consumption.
-  - Validate client payloads and handle HTTP response formats.
-  - Interface between controllers and underlying modules.
-* **Inputs**: HTTP requests.
-* **Outputs**: HTTP JSON responses, OpenAPI specs.
----
-
-## Authentication Module
-
-Responsibilities
-
-User Registration
-
-Login
-
-JWT Authentication
-
-Role-Based Access
-
-Profile Management
-
----
-
-## Solar Prediction Module
-
-Responsibilities
-
-Solar Irradiance Analysis
-
-Energy Prediction
-
-Panel Efficiency
-
-Seasonal Forecasting
-
----
-
-## Wind Prediction Module
-
-Responsibilities
-
-Wind Speed Analysis
-
-Power Density Prediction
-
-Wind Energy Estimation
-
-Forecasting
-
----
-
-## Site Suitability Module
-
-Responsibilities
-
-Site Ranking
-
-Suitability Score
-
-Land Analysis
-
-Infrastructure Analysis
-
-Environmental Constraints
-
----
-
-## Database Module
-
-Responsibilities
-
-Store Users
-
-Store Projects
-
-Store Site Data
-
-Store Predictions
-
-Store Reports
-
----
-
-## Reports Module
-
-Responsibilities
-
-Generate PDF Reports
-
-Generate Excel Reports
-
-Export Results
-
-Site Assessment Reports
-
-Investment Reports
-
----
-
-## Dashboard Module
-
-Responsibilities
-
-Charts
-
-Maps
-
-Project Status
-
-Predictions
-
-Site Comparison
-
-Analytics
-
----
-
-## API Services
-
-Responsibilities
-
-Backend APIs
-
-Frontend Integration
-
-Database Communication
-
-Prediction Services
-
-Authentication APIs

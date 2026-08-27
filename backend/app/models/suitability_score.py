@@ -1,24 +1,19 @@
-import uuid
-from datetime import datetime
-from sqlalchemy import Column, String, Float, Text, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, Float, String, DateTime, ForeignKey
 from app.database.database import Base
-
+from datetime import datetime, timezone
 
 class SuitabilityScore(Base):
     __tablename__ = "suitability_scores"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    site_id = Column(String, ForeignKey("sites.id", ondelete="CASCADE"), nullable=False, unique=True)
-
+    id = Column(Integer, primary_key=True, index=True)
+    site_id = Column(Integer, ForeignKey("sites.id", ondelete="CASCADE"), nullable=False, index=True)
+    
+    resource_score = Column(Float, nullable=False)
+    geographic_score = Column(Float, nullable=False)
+    infrastructure_score = Column(Float, nullable=False)
+    environmental_score = Column(Float, nullable=False)
+    economic_score = Column(Float, nullable=False)
     overall_score = Column(Float, nullable=False)
-    resource_score = Column(Float, nullable=True)  # <-- Added column here
-    solar_score = Column(Float, nullable=True)
-    wind_score = Column(Float, nullable=True)
-    infrastructure_score = Column(Float, nullable=True)
-    recommendation = Column(String, nullable=True)
-    risks_json = Column(Text, nullable=True)
-
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-    site = relationship("Site", back_populates="suitability_score")
+    
+    suitability_category = Column(String(50), nullable=False)  # Excellent, Highly Suitable, Moderately Suitable, Low Suitability, Unsuitable
+    calculated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

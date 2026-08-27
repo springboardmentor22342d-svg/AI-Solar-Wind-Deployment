@@ -1,28 +1,21 @@
-from sqlalchemy import Column, Integer, Float, DateTime, String, ForeignKey
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from sqlalchemy import Column, Integer, Float, DateTime
 from app.database.database import Base
+from datetime import datetime, timezone
 
-class FeatureStore(Base):
+class FeatureRecord(Base):
     __tablename__ = "feature_store"
 
     id = Column(Integer, primary_key=True, index=True)
-    latitude = Column(Float, nullable=False)
-    longitude = Column(Float, nullable=False)
-    solar_irradiance = Column(Float, nullable=True)
-    wind_speed = Column(Float, nullable=True)
-    elevation = Column(Float, nullable=True)
-    temperature = Column(Float, nullable=True)
-    humidity = Column(Float, nullable=True)
-    slope = Column(Float, nullable=True)
-    road_distance = Column(Float, nullable=True)
-    substation_distance = Column(Float, nullable=True)
-    capacity_factor = Column(Float, nullable=True)
-    wind_class = Column(String, nullable=True)
-    terrain_score = Column(Float, nullable=True)
-    accessibility_score = Column(Float, nullable=True)
-    suitability_score = Column(Float, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    site_id = Column(Integer, ForeignKey("sites.id"), nullable=True)
-    site = relationship("Site")
+    latitude = Column(Float, nullable=False, index=True)
+    longitude = Column(Float, nullable=False, index=True)
+    
+    # Processed Machine Learning Features
+    solar_irradiance = Column(Float, nullable=False)
+    wind_speed = Column(Float, nullable=False)
+    temperature = Column(Float, nullable=False)
+    humidity = Column(Float, nullable=False)
+    elevation = Column(Float, nullable=False)
+    slope = Column(Float, nullable=False)
+    
+    # Metadata for debugging, tracking, and training pipelines
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

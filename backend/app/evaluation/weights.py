@@ -1,7 +1,8 @@
-# Weight configuration for each category
-
-RENEWABLE_WEIGHT = 0.35
-TERRAIN_WEIGHT = 0.20
-INFRASTRUCTURE_WEIGHT = 0.20
-ENVIRONMENTAL_WEIGHT = 0.15
-ECONOMIC_WEIGHT = 0.10
+# Feature weights must always sum to 1.0 (100%)
+DEFAULT_WEIGHTS = {
+    "solar_irradiance": 0.35,
+    "wind_speed": 0.25,
+    "slope": 0.15,
+    "grid_distance": 0.15,
+    "road_distance": 0.10
+}

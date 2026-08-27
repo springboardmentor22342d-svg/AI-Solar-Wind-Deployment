@@ -1,42 +1,17 @@
-import uuid
-from sqlalchemy import Column, String, ForeignKey, DateTime, func
-from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from app.database.database import Base
-
+from datetime import datetime, timezone
 
 class Report(Base):
     __tablename__ = "reports"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
-    title = Column(String, nullable=False)
-    report_type = Column(String, nullable=False) # PDF, CSV, Feasibility
-    file_path = Column(String, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    project = relationship("Project", back_populates="reports")
-    """
-    Report model — links a generated assessment report to a Site and its owning User.
-    Satisfies the DB relationships requirement for Milestone 1.
-    """
-    __tablename__ = "reports"
-
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, nullable=False)
-    report_type = Column(String, nullable=False, default="Assessment")
-    summary = Column(Text, nullable=True)
-    deployment_recommendation = Column(String, nullable=True)
-    overall_suitability_score = Column(String, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    # FK → Site
-    site_id = Column(Integer, ForeignKey("sites.id"), nullable=True)
-    # FK → User (report creator)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-
-    # Relationships
-    site = relationship("Site", back_populates="reports")
-    created_by = relationship("User", back_populates="reports")
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True)
+    site_id = Column(Integer, ForeignKey("sites.id", ondelete="SET NULL"), nullable=True, index=True)
+    
+    report_type = Column(String(50), nullable=False)  # site_assessment, solar_potential, wind_potential, feasibility, investment
+    file_format = Column(String(10), nullable=False)  # PDF, Excel
+    file_path = Column(String(255), nullable=False)
+    
+    generated_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    generated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

@@ -1,74 +1,85 @@
-import { createContext, useContext, useState, useEffect } from 'react'
-import { authAPI } from '../services/api'
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { fetchMe, saveToken, getToken, clearToken } from '../api/auth';
 
-const AuthContext = createContext(null)
+const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('user')) } catch { return null }
-  })
-  const [loading, setLoading] = useState(false)
-
-  const login = async (username, password) => {
-    setLoading(true)
-    try {
-      const res = await authAPI.login(username, password)
-      const { access_token, role } = res.data
-      localStorage.setItem('access_token', access_token)
-      const profileRes = await authAPI.profile()
-      const userData = { ...profileRes.data, role }
-      localStorage.setItem('user', JSON.stringify(userData))
-      setUser(userData)
-      return { success: true }
-    } catch (err) {
-      return { success: false, error: err.response?.data?.detail || 'Login failed' }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const loginWithToken = async (token, role) => {
-    setLoading(true)
-    try {
-      localStorage.setItem('access_token', token)
-      const profileRes = await authAPI.profile()
-      const userData = { ...profileRes.data, role }
-      localStorage.setItem('user', JSON.stringify(userData))
-      setUser(userData)
-      return { success: true }
-    } catch (err) {
-      localStorage.removeItem('access_token')
-      return { success: false, error: err.response?.data?.detail || 'OAuth verification failed' }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const register = async (data) => {
-    setLoading(true)
-    try {
-      await authAPI.register(data)
-      return { success: true }
-    } catch (err) {
-      return { success: false, error: err.response?.data?.detail || 'Registration failed' }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const logout = () => {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('user')
-    setUser(null)
-  }
-
-  const isAuthenticated = !!user
-
-  return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithToken, register, logout, isAuthenticated }}>
-      {children}
-    </AuthContext.Provider>
-  )
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within <AuthProvider>');
+  return ctx;
 }
 
-export const useAuth = () => useContext(AuthContext)
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Attempt to load user from existing JWT in localStorage on mount
+  const refreshUser = useCallback(async () => {
+    const token = getToken();
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+    try {
+      const userData = await fetchMe();
+      setUser(userData);
+    } catch {
+      // Token expired or invalid
+      clearToken();
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshUser();
+  }, [refreshUser]);
+
+  const login = useCallback((token, userData) => {
+    saveToken(token);
+    setUser(userData);
+  }, []);
+
+  const logout = useCallback(() => {
+    clearToken();
+    setUser(null);
+  }, []);
+
+  const isAuthenticated = !!user;
+
+  const hasRole = useCallback((roleName) => {
+    if (!user) return false;
+    if (user.role === 'administrator') return true; // Admin has all roles
+    return user.role === roleName;
+  }, [user]);
+
+  // Map backend role enum values to display labels
+  const getRoleLabel = useCallback((role) => {
+    const labels = {
+      renewable_energy_planner: 'Renewable Energy Planner',
+      gis_analyst: 'GIS Analyst',
+      project_manager: 'Project Manager',
+      administrator: 'Administrator',
+    };
+    return labels[role] || role;
+  }, []);
+
+  const value = {
+    user,
+    loading,
+    isAuthenticated,
+    login,
+    logout,
+    refreshUser,
+    hasRole,
+    getRoleLabel,
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
